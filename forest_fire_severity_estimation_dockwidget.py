@@ -25,17 +25,29 @@
 import os
 
 from qgis.PyQt import QtGui, QtWidgets, uic
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import pyqtSignal, QSettings, QTranslator, qVersion, QCoreApplication, QFileInfo, QDir, QObject, QDate
+from qgis.PyQt.QtWidgets import QMessageBox, QInputDialog, QLineEdit
+from qgis.core import QgsApplication, QgsDataSourceUri,QgsMapLayerProxyModel, QgsRectangle, QgsGeometry, \
+    QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsProject, QgsVectorLayer
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'forest_fire_severity_estimation_dockwidget_base.ui'))
+
+from .about_qdialog import AboutQDialog
+from . import definitions
+
 
 
 class ForestFireSeverityEstimationDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
 
     closingPlugin = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self,
+                 iface,
+                 pluginPath,
+                 currentPluginName,
+                 settings,
+                 parent=None):
         """Constructor."""
         super(ForestFireSeverityEstimationDockWidget, self).__init__(parent)
         # Set up the user interface from Designer.
@@ -43,8 +55,201 @@ class ForestFireSeverityEstimationDockWidget(QtWidgets.QDockWidget, FORM_CLASS):
         # self.<objectname>, and you can use autoconnect slots - see
         # http://doc.qt.io/qt-5/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
+        self.windowTitle = definitions.CONST_PROGRAM_NAME
+        self.iface = iface
+        self.path_plugin = pluginPath
+        self.current_plugin_name = currentPluginName
+        self.settings = settings
         self.setupUi(self)
+        self.initialize()
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
+
+    def initialize(self):
+        self.about_qdialog = None
+
+        path_file_qsettings = self.path_plugin + '/' + definitions.CONST_SETTINGS_FILE_NAME
+        self.settings = QSettings(path_file_qsettings,QSettings.IniFormat)
+
+        qs = QSettings()
+        self.about_qdialog = None
+        self.aboutPushButton.clicked.connect(self.showAboutDlg)
+        self.processPushButton.clicked.connect(self.process)
+        self.outputFileNamePushButton.clicked.connect(self.selectOutputFileName)
+
+        pluginsPath = QFileInfo(QgsApplication.qgisUserDatabaseFilePath()).path()
+        thisFilePath = os.path.dirname(os.path.realpath(__file__))
+        thisFilePath = os.path.join(pluginsPath, thisFilePath)
+
+        self.templatePath = thisFilePath + definitions.CONST_TEMPLATE_PATH
+        self.qmlDNBRFileName = self.templatePath + definitions.CONST_DNBR_SYMBOLOGY_TEMPLATE
+
+        self.path = self.settings.value(definitions.CONST_SETTINGS_LAST_PATH_TAG)
+        if not self.path:
+            self.path = QDir.currentPath()
+            self.settings.setValue(definitions.CONST_SETTINGS_LAST_PATH_TAG,self.path)
+            self.settings.sync()
+
+        self.roiLayerComboBox.setFilters(QgsMapLayerProxyModel.VectorLayer)
+        self.roiLayerComboBox.clear()
+        existing_vector_layers = [l for l in QgsProject().instance().mapLayers().values() if isinstance(l, QgsVectorLayer)]
+        self.roiLayerComboBox.setAdditionalLayers(existing_vector_layers)
+
+        preFireInitialDateString = self.settings.value(definitions.CONST_SETTINGS_PREFIRE_INITIAL_DATE_TAG)
+        if not preFireInitialDateString:
+            preFireInitialDateString = definitions.CONST_PREFIRE_INITIAL_DATE_DEFAULT
+        else:
+            preFireInitialDate = QDate.fromString(preFireInitialDateString,
+                                                  definitions.CONST_DATE_STRING_TEMPLATE)
+            if not preFireInitialDate.isValid():
+                preFireInitialDateString = definitions.CONST_PREFIRE_INITIAL_DATE_DEFAULT
+        self.settings.setValue(definitions.CONST_SETTINGS_PREFIRE_INITIAL_DATE_TAG,
+                               preFireInitialDateString)
+        self.settings.sync()
+        self.preFireInitialDateEdit.setDate(QDate.fromString(preFireInitialDateString,
+                                                          definitions.CONST_DATE_STRING_TEMPLATE))
+
+        preFireFinalDateString = self.settings.value(definitions.CONST_SETTINGS_PREFIRE_FINAL_DATE_TAG)
+        if not preFireFinalDateString:
+            preFireFinalDateString = definitions.CONST_PREFIRE_FINAL_DATE_DEFAULT
+        else:
+            preFireFinalDate = QDate.fromString(preFireFinalDateString,
+                                                  definitions.CONST_DATE_STRING_TEMPLATE)
+            if not preFireFinalDate.isValid():
+                preFireFinalDateString = definitions.CONST_PREFIRE_FINAL_DATE_DEFAULT
+        self.settings.setValue(definitions.CONST_SETTINGS_PREFIRE_FINAL_DATE_TAG,
+                               preFireFinalDateString)
+        self.settings.sync()
+        self.preFireFinalDateEdit.setDate(QDate.fromString(preFireFinalDateString,
+                                                          definitions.CONST_DATE_STRING_TEMPLATE))
+
+        postFireInitialDateString = self.settings.value(definitions.CONST_SETTINGS_POSTFIRE_INITIAL_DATE_TAG)
+        if not postFireInitialDateString:
+            postFireInitialDateString = definitions.CONST_POSTFIRE_INITIAL_DATE_DEFAULT
+        else:
+            postFireInitialDate = QDate.fromString(postFireInitialDateString,
+                                                  definitions.CONST_DATE_STRING_TEMPLATE)
+            if not postFireInitialDate.isValid():
+                postFireInitialDateString = definitions.CONST_POSTFIRE_INITIAL_DATE_DEFAULT
+        self.settings.setValue(definitions.CONST_SETTINGS_POSTFIRE_INITIAL_DATE_TAG,
+                               postFireInitialDateString)
+        self.settings.sync()
+        self.postFireInitialDateEdit.setDate(QDate.fromString(postFireInitialDateString,
+                                                          definitions.CONST_DATE_STRING_TEMPLATE))
+
+        postFireFinalDateString = self.settings.value(definitions.CONST_SETTINGS_POSTFIRE_FINAL_DATE_TAG)
+        if not postFireFinalDateString:
+            postFireFinalDateString = definitions.CONST_POSTFIRE_FINAL_DATE_DEFAULT
+        else:
+            postFireFinalDate = QDate.fromString(postFireFinalDateString,
+                                                  definitions.CONST_DATE_STRING_TEMPLATE)
+            if not postFireFinalDate.isValid():
+                postFireFinalDateString = definitions.CONST_POSTFIRE_FINAL_DATE_DEFAULT
+        self.settings.setValue(definitions.CONST_SETTINGS_POSTFIRE_FINAL_DATE_TAG,
+                               postFireFinalDateString)
+        self.settings.sync()
+        self.postFireFinalDateEdit.setDate(QDate.fromString(postFireFinalDateString,
+                                                          definitions.CONST_DATE_STRING_TEMPLATE))
+
+
+    def process(self):
+        roiLayer = self.roiLayerComboBox.currentLayer()
+        if not roiLayer:
+            text = "Load and select ROI layer"
+            msgBox = QMessageBox(self)
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setWindowTitle(self.windowTitle)
+            msgBox.setText("Error:\n" + text)
+            msgBox.exec_()
+            return
+
+        preFireInitialJulianDate = self.preFireInitialDateEdit.date().toJulianDay()
+        preFireFinalJulianDate = self.preFireFinalDateEdit.date().toJulianDay()
+        postFireInitialJulianDate = self.postFireInitialDateEdit.date().toJulianDay()
+        postFireFinalJulianDate = self.postFireFinalDateEdit.date().toJulianDay()
+
+        if preFireFinalJulianDate <= preFireInitialJulianDate:
+            text = "Pre-fire final date must be later than pre-fire initial date"
+            msgBox = QMessageBox(self)
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setWindowTitle(self.windowTitle)
+            msgBox.setText("Error:\n" + text)
+            msgBox.exec_()
+            return
+        if (preFireFinalJulianDate-preFireInitialJulianDate)<definitions.CONST_MINIMAL_DATES_INTERVAL_PRE_AND_POST:
+            text = "The pre-fire date interval must be greater than " + str(definitions.CONST_MINIMAL_DATES_INTERVAL_PRE_AND_POST-1)
+            msgBox = QMessageBox(self)
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setWindowTitle(self.windowTitle)
+            msgBox.setText("Error:\n" + text)
+            msgBox.exec_()
+            return
+
+        if postFireFinalJulianDate <= postFireInitialJulianDate:
+            text = "Post-fire final date must be later than post-fire initial date"
+            msgBox = QMessageBox(self)
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setWindowTitle(self.windowTitle)
+            msgBox.setText("Error:\n" + text)
+            msgBox.exec_()
+            return
+        if (postFireFinalJulianDate-postFireInitialJulianDate)<definitions.CONST_MINIMAL_DATES_INTERVAL_PRE_AND_POST:
+            text = "The post-fire date interval must be greater than " + str(definitions.CONST_MINIMAL_DATES_INTERVAL_PRE_AND_POST-1)
+            msgBox = QMessageBox(self)
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setWindowTitle(self.windowTitle)
+            msgBox.setText("Error:\n" + text)
+            msgBox.exec_()
+            return
+
+        outputFileName = self.outputFileNameLineEdit.text()
+        if not outputFileName:
+            text = "Input a valid output GeoTIFF file name"
+            msgBox = QMessageBox(self)
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setWindowTitle(self.windowTitle)
+            msgBox.setText("Error:\n" + text)
+            msgBox.exec_()
+            return
+
+        roiLayerCrs = roiLayer.crs()
+        roiExtentRectangle = roiLayer.extent()
+        roiExtentWkt = roiExtentRectangle.asWktPolygon()
+        roiExtentGeometry = QgsGeometry.fromWkt(roiExtentWkt)
+        targetCrs = QgsCoordinateReferenceSystem(4326)
+        crsOperation = QgsCoordinateTransform(roiLayerCrs, targetCrs, QgsProject.instance())
+        roiExtentGeometry.transform(crsOperation)
+        roiExtentWkt = roiExtentGeometry.asWkt()
+        roiBoundigBox = roiExtentGeometry.boundingBox()
+        westLongitude = roiBoundigBox.xMinimum()
+        eastLongitude = roiBoundigBox.xMaximum()
+        southLatitude = roiBoundigBox.yMinimum()
+        northLongitude = roiBoundigBox.yMaximum()
+        # roi = ee.Geometry.Polygon([
+        #     [[-1.90, 38.51], [-1.90, 38.55], [-1.83, 38.55], [-1.83, 38.51]]
+        # ])
+
+        msgBox = QMessageBox(self)
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setWindowTitle(self.windowTitle)
+        msgBox.setText("ROI extent:\n" + roiExtentWkt)
+        msgBox.exec_()
+
+    def selectOutputFileName(self):
+        oldText = self.outputFileNameLineEdit.text()
+        label = "Select a valid GeoTIFF output file name:"
+        title = definitions.CONST_PROGRAM_TITLE
+        [text, ok] = QInputDialog.getText(self, title, label, QLineEdit.Normal, oldText)
+        if ok and text:
+            text = text.strip()
+            text = text.replace(" ","")
+            if not text == oldText:
+                self.outputFileNameLineEdit.setText(text)
+        return
+
+    def showAboutDlg(self):
+        if self.about_qdialog == None:
+            self.about_qdialog = AboutQDialog()
+        self.about_qdialog.show()

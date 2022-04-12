@@ -21,9 +21,10 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QFileInfo, QDir, QObject, QFile
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
+from qgis.core import QgsApplication, QgsDataSourceUri
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -31,6 +32,17 @@ from .resources import *
 from .forest_fire_severity_estimation_dockwidget import ForestFireSeverityEstimationDockWidget
 import os.path
 
+import sys
+# sys.path.append("C:\Program Files\JetBrains\PyCharm 2018.3.3\debug-eggs\pycharm-debug.egg") # dhl
+# sys.path.append("C:\Program Files\JetBrains\PyCharm 2020.3\debug-eggs\pydevd-pycharm.egg") # dhl
+# import pydevd
+
+pluginsPath = QFileInfo(QgsApplication.qgisUserDatabaseFilePath()).path()
+pluginPath = os.path.dirname(os.path.realpath(__file__))
+pluginPath = os.path.join(pluginsPath, pluginPath)
+sys.path.append(pluginPath)
+
+from . import definitions
 
 class ForestFireSeverityEstimation:
     """QGIS Plugin Implementation."""
@@ -43,6 +55,12 @@ class ForestFireSeverityEstimation:
             application at run time.
         :type iface: QgsInterface
         """
+
+        # pydevd.settrace('localhost',port=54100,stdoutToServer=True,stderrToServer=True)
+
+        self.path_plugin = pluginPath
+        self.current_plugin_name = definitions.CONST_SETTINGS_PLUGIN_NAME
+
         # Save reference to the QGIS interface
         self.iface = iface
 
@@ -212,6 +230,10 @@ class ForestFireSeverityEstimation:
         """Run method that loads and starts the plugin"""
 
         if not self.pluginIsActive:
+
+            path_file_qsettings = self.path_plugin + '/' + definitions.CONST_SETTINGS_FILE_NAME
+            self.settings = QSettings(path_file_qsettings, QSettings.IniFormat)
+
             self.pluginIsActive = True
 
             #print "** STARTING ForestFireSeverityEstimation"
@@ -221,7 +243,10 @@ class ForestFireSeverityEstimation:
             #    removed on close (see self.onClosePlugin method)
             if self.dockwidget == None:
                 # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = ForestFireSeverityEstimationDockWidget()
+                self.dockwidget = ForestFireSeverityEstimationDockWidget(self.iface,
+                                               self.path_plugin,
+                                               self.current_plugin_name,
+                                               self.settings)
 
             # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
