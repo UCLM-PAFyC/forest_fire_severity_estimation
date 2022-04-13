@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>437</width>
-    <height>204</height>
+    <width>490</width>
+    <height>244</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Forest fire severity estimation using DNBR from Sentinel-2 and Earth Engine</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
-   <layout class="QGridLayout" name="gridLayout_2">
+   <layout class="QGridLayout" name="gridLayout_3">
     <item row="0" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
@@ -140,8 +140,53 @@
      </layout>
     </item>
     <item row="2" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="googleDrivePathPushButton">
+        <property name="maximumSize">
+         <size>
+          <width>110</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Google Drive path:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="googleDrivePathLineEdit">
+        <property name="minimumSize">
+         <size>
+          <width>300</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>400</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <spacer name="horizontalSpacer_6">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="1" column="0">
        <widget class="QPushButton" name="outputFileNamePushButton">
         <property name="maximumSize">
          <size>
@@ -154,7 +199,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="1">
        <widget class="QLineEdit" name="outputFileNameLineEdit">
         <property name="minimumSize">
          <size>
@@ -173,7 +218,7 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="2">
        <spacer name="horizontalSpacer_5">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -189,7 +234,7 @@
      </layout>
     </item>
     <item row="3" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QPushButton" name="processPushButton">
         <property name="minimumSize">
@@ -210,14 +255,33 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="loadResultPushButton">
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>Load downloaded GeoTIFF result</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer_3">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>318</width>
-          <height>20</height>
+          <width>68</width>
+          <height>29</height>
          </size>
         </property>
        </spacer>

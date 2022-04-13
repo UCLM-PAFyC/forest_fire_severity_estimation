@@ -32,17 +32,15 @@ Please report any bugs and enhancement ideas by email: david.hernandez@uclm.es
 
 Contact the author to request any custom development 
 
-Current funcionalities:
-- Create Project
-- Import point cloud files (LAS/LAZ) selecting attributes
-- Edit point classes using 2D/3D tools or values for attribute class_new changed with any QGIS' tool
-- Delete points
-- Export changes to original point cloud files
-- Perform some LAStools processes in an optimized way
+Pre-requisites:
+
+- Install Google Earth Plugin from QGIS Python Plugins Repository
+- Create Google Earth Engine API KEY when plugin require, using your Google account
+
+Any use of this version is allowed without 
+responsibility for the author
 
 To do ...
 - Create a user manual
-- Improve 3D viewer
-- Automate processes with other vector data sources
-- Automate processes with raster data sources
+- ...
 

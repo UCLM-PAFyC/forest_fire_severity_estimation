@@ -23,8 +23,9 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QFileInfo, QDir, QObject, QFile
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QMessageBox
 from qgis.core import QgsApplication, QgsDataSourceUri
+from qgis.utils import plugins
 # Initialize Qt resources from file resources.py
 from .resources import *
 
@@ -228,6 +229,13 @@ class ForestFireSeverityEstimation:
 
     def run(self):
         """Run method that loads and starts the plugin"""
+
+        if definitions.CONST_EARTH_ENGINE_PLUGIN not in plugins:
+            QMessageBox.critical(self.iface.mainWindow(),
+                                 definitions.CONST_PROGRAM_TITLE,
+                                 "This plugin requires install and active the Google Earth Engine plugin")
+            return
+        earthEnginePluginInstance = plugins[definitions.CONST_EARTH_ENGINE_PLUGIN]
 
         if not self.pluginIsActive:
 
