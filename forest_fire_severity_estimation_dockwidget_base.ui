@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>490</width>
+    <width>442</width>
     <height>244</height>
    </rect>
   </property>
@@ -53,6 +53,12 @@
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
        <widget class="QLabel" name="preFireDatesLabel">
+        <property name="minimumSize">
+         <size>
+          <width>85</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="text">
          <string>Pre-fire dates:</string>
         </property>
@@ -93,6 +99,12 @@
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="postFireDatesLabel">
+        <property name="minimumSize">
+         <size>
+          <width>85</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="text">
          <string>Post-fire dates:</string>
         </property>
@@ -143,6 +155,12 @@
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
        <widget class="QPushButton" name="googleDrivePathPushButton">
+        <property name="minimumSize">
+         <size>
+          <width>110</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>110</width>
@@ -188,6 +206,12 @@
       </item>
       <item row="1" column="0">
        <widget class="QPushButton" name="outputFileNamePushButton">
+        <property name="minimumSize">
+         <size>
+          <width>110</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>110</width>
